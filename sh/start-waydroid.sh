@@ -3,7 +3,7 @@
 # --- CONFIGURACIÓN ---
 MOUNT_POINTS=(
     "/home/xardec/Descargas:/home/xardec/.local/share/waydroid/data/media/0/Download"
-    "/home/xardec/Media/Mangas/Kotatsu:/home/xardec/.local/share/waydroid/data/media/0/Android/data/org.koitharu.kotatsu/files/manga"
+    #"/home/xardec/Media/Mangas/Kotatsu:/home/xardec/.local/share/waydroid/data/media/0/Android/data/org.koitharu.kotatsu/files/manga"
 )
 
 RED='\033[0;31m'
@@ -19,7 +19,7 @@ check_mount() {
     sudo mount --bind "$source" "$target" && echo -e "${GREEN}✓ Montaje exitoso!${NC}"
   else
     #montado
-    echo "✅ Ya esta montado: $source → $target"
+    echo "✅ Ya está montado: $source → $target"
   fi
 }
 
@@ -30,7 +30,7 @@ start_waydroid() {
         waydroid show-full-ui
     else
         #stopped
-        echo "Intialized Waydroid..."
+        echo "🚩 Iniciando Waydroid"
         waydroid session start & disown
         sleep 5
         waydroid show-full-ui
