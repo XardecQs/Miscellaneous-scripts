@@ -1,47 +1,55 @@
 #!/bin/bash
 
+tmp_file=$(mktemp)  # Archivo temporal para directorios creados
+
 function obtener_directorio {
     local nombre=$1
     local directorio=""
 
     if [[ "$nombre" == *.* ]]; then
-        directorio="${nombre##*.}"  # Última extensión
+        ultima_ext="${nombre##*.}"
+        directorio="$ultima_ext"
 
-        # Manejar extensiones compuestas conocidas
-        case "$directorio" in
+        # Manejar extensiones compuestas
+        case "$ultima_ext" in
             "gz"|"bz2"|"xz")
                 if [[ "$nombre" == *.*.* ]]; then
-                    # Obtener penúltima extensión
-                    nombre_sin_ultima_ext="${nombre%.*}"
-                    penultima_ext="${nombre_sin_ultima_ext##*.}"
-                    directorio="$penultima_ext.$directorio"
+                    nombre_sin_ext="${nombre%.*}"
+                    penultima_ext="${nombre_sin_ext##*.}"
+                    directorio="$penultima_ext.$ultima_ext"
                 fi
                 ;;
         esac
     fi
 
-    # Si no hay extensión o está vacía, usar "sin_extension"
-    echo "${directorio:-sin_extension}"
+    # Normalizar a minúsculas y asignar "sin_extension" si es necesario
+    directorio=$(echo "${directorio:-sin_extension}" | tr '[:upper:]' '[:lower:]')
+    echo "$directorio"
 }
 
 find . -maxdepth 1 -type f -print0 | while IFS= read -r -d '' archivo; do
     nombre=$(basename "$archivo")
-    directorio=""
+    nombre_procesado="$nombre"
 
-    if [[ "$nombre" =~ ^\. ]]; then  # Archivo oculto
-        nombre_sin_punto="${nombre#.}"  # Eliminar el punto inicial
-        directorio=$(obtener_directorio "$nombre_sin_punto")
-    else  # Archivo normal
-        directorio=$(obtener_directorio "$nombre")
+    # Manejar archivos ocultos
+    if [[ "$nombre" =~ ^\. ]]; then
+        nombre_procesado="${nombre#.}"
     fi
 
-    # Limpieza por si la extensión es vacía (ej: archivo.)
-    [[ -z "$directorio" ]] && directorio="sin_extension"
+    directorio=$(obtener_directorio "$nombre_procesado")
 
-    # Mover el archivo
-    mkdir -p "./$directorio"
-    mv -f "$archivo" "./$directorio/" &>/dev/null
+    # Crear directorio si no existe y registrarlo
+    if [[ ! -d "./$directorio" ]]; then
+        mkdir -p "./$directorio"
+        echo "$directorio" >> "$tmp_file"
+    fi
+
+    # Mover archivo con manejo de errores
+    if ! mv -f "$archivo" "./$directorio/"; then
+        echo "Error al mover: $(printf "%q" "$archivo")" >&2
+    fi
 done
 
-echo "Organización completada. Archivos clasificados en:"
-find . -type d -not -path '.' | sed 's/^\.\///'
+echo -e "\nOrganización completada. Directorios creados:"
+sort -u "$tmp_file" | sed 's/^/- /'
+rm "$tmp_file"
