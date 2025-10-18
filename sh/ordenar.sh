@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 tmp_file=$(mktemp)  # Archivo temporal para directorios creados
 

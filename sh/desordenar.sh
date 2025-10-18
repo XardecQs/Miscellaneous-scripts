@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Script para mover archivos de subdirectorios al directorio actual
 # con control de profundidad, exclusiones y manejo de colisiones
 
