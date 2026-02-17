@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Verificar dependencias
 if ! command -v identify &> /dev/null; then
